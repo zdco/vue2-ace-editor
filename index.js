@@ -19,7 +19,8 @@ module.exports = {
         theme:String,
         height:true,
         width:true,
-        options:Object
+        options:Object,
+        readOnly:Boolean
     },
     data: function () {
         return {
@@ -60,6 +61,9 @@ module.exports = {
             this.$nextTick(function(){
                 this.editor.resize()
             })
+        },
+        readOnly:function(newReadonly){
+            this.editor.setReadOnly(newReadonly);
         }
     },
     beforeDestroy: function() {
@@ -70,6 +74,7 @@ module.exports = {
         var vm = this;
         var lang = this.lang||'text';
         var theme = this.theme||'chrome';
+        var readOnly = this.readOnly||false;
 
         require('brace/ext/emmet');
 
@@ -78,10 +83,14 @@ module.exports = {
         this.$emit('init',editor);
         
         editor.$blockScrolling = Infinity;
-        editor.setOption("enableEmmet", true);
         editor.getSession().setMode('ace/mode/'+lang);
         editor.setTheme('ace/theme/'+theme);
         editor.setValue(this.value,1);
+        editor.setReadOnly(readOnly);
+        editor.setHighlightActiveLine(true);
+        editor.setPrintMarginColumn(false);
+        editor.setShowPrintMargin(true);
+        editor.gotoLine(editor.session.getLength()+2);
         this.contentBackup = this.value;
 
         editor.on('change',function () {
@@ -91,5 +100,15 @@ module.exports = {
         });
         if(vm.options)
             editor.setOptions(vm.options);
+        else {
+            editor.setOptions({
+                enableSnippets: true, 
+                useSoftTabs: false, 
+                setHighlightActiveLine: false, 
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableEmmet: true
+            });
+        }
     }
 }
